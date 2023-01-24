@@ -66,7 +66,7 @@ function draw() {
   }
   if (mouseX < 50 && mouseY < 250 && mouseY > 200) {
     if (mouseIsPressed) {
-      color = "#5C4033";
+      color = "cyan";
     }
   }
   if (mouseX < 50 && mouseY < 300 && mouseY > 250) {

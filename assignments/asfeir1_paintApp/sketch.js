@@ -5,11 +5,13 @@ function setup() {
   createCanvas(800, 600);
 }
 
+//Retrieves the position of the mouse cursor when pressed
 function mousePressed() {
   lastX = mouseX;
   lastY = mouseY;
 }
 
+//Draws with the mouse cursor
 function mouseDragged() {
   strokeWeight(5);
   stroke(color);

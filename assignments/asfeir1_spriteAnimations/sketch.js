@@ -34,7 +34,7 @@ function setup() {
         guy_sprites[7],
     );
 
-    guy_animation.frameDelay = 5;
+    guy_animation.frameDelay = 4;
     
 
 }

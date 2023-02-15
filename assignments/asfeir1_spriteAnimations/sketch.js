@@ -26,8 +26,8 @@ function setup() {
   for (var i = 0; i < spriteSheets.length; i++) {
     animations[i] = new walkAnimation(
       spriteSheets[i],
-      80,
-      80,
+      30,
+      30,
       width / 2 + i * 100,
       height - 500,
       9

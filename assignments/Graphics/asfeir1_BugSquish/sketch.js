@@ -8,6 +8,45 @@ let deadSpider;
 let spriteSheets = [];
 let animations = [];
 
+let synth = new Tone.PolySynth().toMaster();
+let dSynth = new Tone.PolySynth();
+
+let lowpass = new Tone.Filter(800, "lowpass").toMaster();
+dSynth.connect(lowpass);
+
+const speedUp = new Tone.Sequence(
+  (time, note) => {
+    synth.triggerAttackRelease(note, "4n", time);
+  },
+  [["C4", "E4", "G4"],
+  ["F4", "A4", "C5"],
+  ["G4", "B4", "D5"],
+  ["A4", "C5", "E5"]]
+);
+
+const endGameMelody = new Tone.Sequence(
+  (time, note) => {
+    dSynth.triggerAttackRelease(note, "2n", time);
+  },
+ [ "C3", "G2", "C2", "G1"]
+);
+
+const bgMelody = new Tone.Sequence(
+  (time, note) => {
+    dSynth.triggerAttackRelease(note, "4n", time);
+  },
+  ['C4', 'E4', 'G4', 'B4']
+);
+
+const startGameMelody = new Tone.Sequence(
+  (time, note) => {
+    dSynth.triggerAttackRelease(note, "4n", time);
+  },
+  ["C4", "E4", "G4", "C5", "G4", "E4", "C4",
+  "C4", "E4", "G4", "C5", "G4", "E4", "C4",
+  "C4", "D4", "E4", "F4", "E4", "D4", "C4"]
+);
+
 const GameState = {
   Start: "Start",
   Playing: "Playing",
@@ -24,24 +63,38 @@ let game = {
   targetSprite: 2 ,
 };
 
+let soundFX;
+
 function preload() {
   for (let i = 0; i < spriteSheetFilenames.length; i++) {
     spriteSheets[i] = loadImage("assets/" + spriteSheetFilenames[i]);
   }
   deadSpider = loadImage("assets/spiderWalk/spider3.png");
+  soundFX = new Tone.Players({
+    "hit": "soundFX/splat.mp3",
+    "miss": "soundFX/miss.mp3",
+  }).toMaster();
 }
 
 function setup() {
   createCanvas(400, 400);
   imageMode(CENTER);
   angleMode(DEGREES);
+  frameRate(60);
+  soundFX.player = function(name) {
+    return soundFX.get(name);
+  };
   reset();
 }
 
 function reset() {
   game.elapsedTime = 0;
   game.score = 0;
-  game.totalSprites = random(10, 30);
+  game.totalSprites = random(20, 30);
+
+  Tone.Transport.stop("0");
+  startGameMelody.start("0");
+  Tone.Transport.start("+8n");
 
   animations = [];
   for (let i = 0; i < game.totalSprites; i++) {
@@ -62,17 +115,22 @@ function reset() {
 function draw() {
   switch (game.state) {
     case GameState.Playing:
+      endGameMelody.stop();
+      startGameMelody.stop();
+      bgMelody.start();
       background(220);
       for (let i = 0; i < animations.length; i++) {
         animations[i].draw();
       }
       if(game.score > 5){
+        bgMelody.stop();
+        speedUp.start();
         for (let i = 0; i < animations.length; i++) {
-          animations[i].draw();
+          animations[i].moving *= 1.005;
         }
         if(game.score > 10) {
           for (let i = 0; i < animations.length; i++) {
-            animations[i].draw();
+            animations[i].moving *= 1.005;
           }
         }
       }
@@ -84,10 +142,12 @@ function draw() {
       game.elapsedTime += deltaTime / 1000;
       game.previousTime = millis();
       text(ceil(currentTime), 300, 40);
-      game.elapsedTime += deltaTime / 1000;
       if (currentTime < 0) game.state = GameState.GameOver;
       break;
     case GameState.GameOver:
+      bgMelody.stop();
+      speedUp.stop();
+      endGameMelody.start("0");
       game.maxScore = max(game.score, game.maxScore);
       background(0);
       fill(255);
@@ -99,6 +159,7 @@ function draw() {
       text("Max Score: " + game.maxScore, 200, 320);
       break;
     case GameState.Start:
+      startGameMelody.start("0");
       background(0);
       fill(255);
       textSize(50);
@@ -113,7 +174,7 @@ function draw() {
 function keyPressed() {
   switch (game.state) {
     case GameState.Start:
-      game.state = GameState.Playing;
+       game.state = GameState.Playing;
       break;
     case GameState.GameOver:
       reset();
@@ -122,6 +183,8 @@ function keyPressed() {
   }
 }
 
+
+
 function mousePressed() {
   switch (game.state) {
     case GameState.Playing:
@@ -129,11 +192,14 @@ function mousePressed() {
         let contains = animations[i].contains(mouseX, mouseY);
         if (contains) {
           if (animations[i].moving != 0) {
+            soundFX.player("hit").start();
             animations[i].stop();
             if (animations[i].spritesheet === spriteSheets[game.targetSprite]) {
               game.score += 1;
            } else game.score += 1;
           } 
+       } else {
+         soundFX.player("miss").start();
        }
      }
       break;

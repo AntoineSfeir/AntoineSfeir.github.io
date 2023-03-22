@@ -90,10 +90,10 @@ function setup() {
 function reset() {
   game.elapsedTime = 0;
   game.score = 0;
-  game.totalSprites = random(20, 30);
+  game.totalSprites = random(30, 40);
 
   Tone.Transport.stop("0");
-  startGameMelody.start("0");
+  startGameMelody.start();
   Tone.Transport.start("+8n");
 
   animations = [];
@@ -117,7 +117,10 @@ function draw() {
     case GameState.Playing:
       endGameMelody.stop();
       startGameMelody.stop();
+
       bgMelody.start();
+
+      
       background(220);
       for (let i = 0; i < animations.length; i++) {
         animations[i].draw();
@@ -147,7 +150,7 @@ function draw() {
     case GameState.GameOver:
       bgMelody.stop();
       speedUp.stop();
-      endGameMelody.start("0");
+      endGameMelody.start();
       game.maxScore = max(game.score, game.maxScore);
       background(0);
       fill(255);
@@ -159,7 +162,9 @@ function draw() {
       text("Max Score: " + game.maxScore, 200, 320);
       break;
     case GameState.Start:
-      startGameMelody.start("0");
+      bgMelody.stop();
+      speedUp.stop();
+      startGameMelody.start();
       background(0);
       fill(255);
       textSize(50);

@@ -327,3 +327,4 @@ class WalkingAnimation {
     this.v = 0;
   }
 }
+//https://antoinesfeir.github.io/assignments/Graphics/asfeir1_BugSquish/index.html 

@@ -4,6 +4,8 @@ let writer;
 let slider;
 let brightness;
 let sensorValue;
+let encoder = new TextEncoder();
+let reader, colorValue;
 
 function setup() {
     createCanvas(400, 400);
@@ -23,21 +25,32 @@ function setup() {
 }
 
 function draw() {
-    background(220);
-    if(writer) {
-        writer.write(new Uint8Array(slider.value()));
-        brightness = slider.value();
-        analogWrite(11, brightness)
+    readLoop();
 
-        // Read the sensor value
-        sensorValue = analogRead(A0);
-  
-        // Map the sensor value to a color value
-        let colorValue = map(sensorValue, 0, 1023, 0, 255);
-        background(colorValue, colorValue, colorValue);
+    background(colorValue, colorValue, colorValue);
+    if(writer) {
+        brightness = slider.value();
+        let writeString = brightness + "\n";
+        writer.write(encoder.encode(writeString));  
     }
 }
 
+async function readLoop() { 
+    // Listen to data coming from the serial device.
+    if (!reader) {
+        return;
+    }
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+            reader.releaseLock();
+            break;
+        }
+    // value is a string.
+    colorValue = round(map(value, 0, 1023, 0, 255));
+    console.log(colorValue);
+  }
+}
 
 async function connect() {
     if (port) {
@@ -48,6 +61,14 @@ async function connect() {
         port = await navigator.serial.requestPort();
         await port.open({ baudRate: 9600 });
         console.log("Serial port opened successfully");
+        writer = port.writable.getWriter();
+        let textDecoder = new TextDecoderStream();
+        let readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+        reader = textDecoder.readable
+  .pipeThrough(new TransformStream(new LineBreakTransformer()))
+  .getReader();
+
+
     } catch (err) {
         console.error(err);
     }
@@ -62,3 +83,24 @@ async function disconnect() {
         console.log("Port is not open");
     }
 }
+
+class LineBreakTransformer {
+    constructor() {
+      // A container for holding stream data until a new line.
+      this.chunks = "";
+    }
+  
+    transform(chunk, controller) {
+      // Append new chunks to existing chunks.
+      this.chunks += chunk;
+      // For each line breaks in chunks, send the parsed lines out.
+      const lines = this.chunks.split("\n");
+      this.chunks = lines.pop();
+      lines.forEach((line) => controller.enqueue(line));
+    }
+  
+    flush(controller) {
+      // When the stream is closed, flush any remaining chunks out.
+      controller.enqueue(this.chunks);
+    }
+  }

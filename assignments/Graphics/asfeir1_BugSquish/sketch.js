@@ -76,6 +76,8 @@ function preload() {
   }).toMaster();
 }
 
+
+
 function setup() {
   createCanvas(400, 400);
   imageMode(CENTER);
@@ -91,7 +93,7 @@ function reset() {
   game.elapsedTime = 0;
   game.score = 0;
   game.totalSprites = random(30, 40);
-
+  
   Tone.Transport.stop("0");
   startGameMelody.start();
   Tone.Transport.start("+8n");
@@ -117,10 +119,7 @@ function draw() {
     case GameState.Playing:
       endGameMelody.stop();
       startGameMelody.stop();
-
       bgMelody.start();
-
-      
       background(220);
       for (let i = 0; i < animations.length; i++) {
         animations[i].draw();
@@ -187,8 +186,6 @@ function keyPressed() {
       break;
   }
 }
-
-
 
 function mousePressed() {
   switch (game.state) {

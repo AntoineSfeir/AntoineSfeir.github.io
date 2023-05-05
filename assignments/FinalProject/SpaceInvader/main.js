@@ -15,6 +15,7 @@ let bounusAliens = []; // array of bonus aliens
 let lasers = []; // array of lasers
 let barriers = []; // array of barriers
 let explosions = []; // array of explosions
+let enemyLasers = []; // array of enemy lasers
 let points = 0;
 let lives = 3;
 let bonus;
@@ -35,6 +36,16 @@ let alien1a,
   alien4b,
   alien5;
 let soundFX;
+
+var audioContext = null;
+
+function init() {
+  var button = document.getElementById('startButton');
+  button.addEventListener('click', function() {
+    // create or resume the AudioContext object here
+    audioContext = new AudioContext();
+  });
+}
 
 let synth = new Tone.PolySynth().toMaster();
 let dSynth = new Tone.PolySynth();
@@ -343,6 +354,12 @@ function updateHUD() {
   text("Wave: " + lvlCount, width - 90, 20);
 }
 
+function reload(sprite) {
+  // add a new bullet to the bullets array
+  let laser = new Laser(sprite.x, sprite.y, "enemy");
+  enemyLasers.push(laser);
+}
+
 function drawPlayingState() {
   endGameMelody.stop();
   startGameMelody.stop();
@@ -351,15 +368,15 @@ function drawPlayingState() {
   ship.show();
   let currentTime = millis();
   let deltaTime = currentTime - lastFrameTime;
-  lastFrameTime = currentTime;  
+  lastFrameTime = currentTime;
   // check if we can shoot
   if (!canShoot) {
     // Decrease the cooldown timer
     shootCooldown -= deltaTime;
-    if (shootCooldown <= 0) {      
+    if (shootCooldown <= 0) {
       // Reset the cooldown timer and allow shooting again
       canShoot = true;
-      shootCooldown = 400;   
+      shootCooldown = 400;
     }
   }
   ship.move();
@@ -370,12 +387,24 @@ function drawPlayingState() {
 
   // Show and move the aliens
   let edge = false;
+  let attack = false;
   for (let i = 0; i < aliens.length; i++) {
     aliens[i].show();
     aliens[i].move();
-    //aliens[i].fire();
     if (aliens[i].x > width - 20 || aliens[i].x < 20) {
       edge = true;
+    }
+  }
+  let time = 10000;
+  while(!attack) {
+    time -= deltaTime;
+    if (time <= 0) {
+      attack = true;
+      console.log("attack", time);
+      time = 10000;
+      for(let i = 0; i < aliens.length; i++) { 
+        reload(aliens[i]);
+      }
     }
   }
   // check for collision
@@ -384,6 +413,19 @@ function drawPlayingState() {
       aliens[j].shiftDown();
     }
   }
+
+
+  // Enemies shoot back
+  if (attack) {
+    console.log("over player");
+    for (let i = 0; i < enemyLasers.length; i++) {
+      enemyLasers[i].show();
+      enemyLasers[i].move();
+      enemyLasers.splice(i, 1);
+
+    }
+  }
+
   for (let las = 0; las < lasers.length; las++) {
     lasers[las].show();
     lasers[las].move();
@@ -503,7 +545,7 @@ function keyReleased() {
 
 function keyPressed() {
   if (key === " " && canShoot) {
-    let laser = new Laser(ship.x + 30, ship.y - 20);
+    let laser = new Laser(ship.x + 30, ship.y - 20, "player");
     lasers.push(laser);
     canShoot = false;
   }

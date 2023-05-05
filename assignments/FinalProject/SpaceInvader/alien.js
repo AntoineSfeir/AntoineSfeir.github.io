@@ -3,7 +3,7 @@ class Alien {
     this.x = x;
     this.y = y;
     this.w = 38;
-    this.h = 26;
+    this.h = 30;
     this.alive = true;
     this.die = false;
     this.explosionImages = explosionImages;
@@ -32,12 +32,10 @@ class Alien {
   update() {
     if (this.die && this.frameIndex < this.explosionImages.length) {
         // Display explosion animation for all frames in the array
-        console.log("Explosion animation");
         image(this.explosionImages[this.frameIndex], this.x, this.y, this.w, this.h);
         this.frameIndex++;
       } else {
         // Reset frameIndex and mark alien as dead
-        console.log("Explosion animation reset");
         this.frameIndex = 0;
         this.alive = false;
         this.die = false;
@@ -48,7 +46,6 @@ class Alien {
     this.frameIndex = 0;
     this.alive = false;
     this.die = true;
-    console.log("explode");
   }
 
   move() {
@@ -70,14 +67,16 @@ class Alien {
     }
   }
 
-  fire() {
-    // add a new bullet to the bullets array
-    let laser = new laser(
-      this.x + this.w / 2,
-      this.y + this.h,
-      1,
-      color(255, 0, 0)
-    );
-    this.bullets.push(laser);
-  }
+  
+  // fire() {
+  //   // add a new bullet to the bullets array
+  //   let laser = new Laser(
+  //     this.x + this.w / 2,
+  //     this.y + this.h,
+  //     "down",
+  //     color(255, 0, 0)
+  //   );
+  //   this.bullets.push(laser);
+  //   console.log("bullets added");
+  // }
 }

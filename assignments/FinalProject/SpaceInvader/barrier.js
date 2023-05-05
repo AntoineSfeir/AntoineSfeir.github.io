@@ -4,7 +4,8 @@ class Barrier {
     this.y = y;
     this.w = 90;
     this.radius = 45;
-    this.h = 30;
+    this.h = 35;
+    this.radius = 35;
     this.img0 = img0;
     this.img1 = img1;
     this.img2 = img2;

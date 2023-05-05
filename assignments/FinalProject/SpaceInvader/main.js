@@ -26,6 +26,8 @@ let shootCooldown = 400; // milliseconds
 let canShoot = false;
 let lastFrameTime = 0;
 
+
+
 let alien1a,
   alien1b,
   alien2a,
@@ -40,8 +42,8 @@ let soundFX;
 var audioContext = null;
 
 function init() {
-  var button = document.getElementById('startButton');
-  button.addEventListener('click', function() {
+  var button = document.getElementById("startButton");
+  button.addEventListener("click", function () {
     // create or resume the AudioContext object here
     audioContext = new AudioContext();
   });
@@ -395,18 +397,7 @@ function drawPlayingState() {
       edge = true;
     }
   }
-  let time = 10000;
-  while(!attack) {
-    time -= deltaTime;
-    if (time <= 0) {
-      attack = true;
-      console.log("attack", time);
-      time = 10000;
-      for(let i = 0; i < aliens.length; i++) { 
-        reload(aliens[i]);
-      }
-    }
-  }
+
   // check for collision
   if (edge) {
     for (let j = 0; j < aliens.length; j++) {
@@ -414,16 +405,44 @@ function drawPlayingState() {
     }
   }
 
-
   // Enemies shoot back
-  if (attack) {
-    console.log("over player");
-    for (let i = 0; i < enemyLasers.length; i++) {
-      enemyLasers[i].show();
-      enemyLasers[i].move();
-      enemyLasers.splice(i, 1);
-
+  let attackTime = 5000;
+  let attackStart = 0;
+  let attackProb = 0.2;
+  while (!attack && millis() - attackStart > attackTime) {
+    attack = true;
+    attackStart = millis();
+    attackProb = 0.2 + random(-1, 1); // update attack probability randomly
+    for (let i = 0; i < aliens.length; i++) {
+      if (random(50) < attackProb) {
+        reload(aliens[i]);
+      }
     }
+  }
+
+  for (let i = 0; i < enemyLasers.length; i++) {
+    enemyLasers[i].show();
+    enemyLasers[i].move();
+    for(let j = 0; j < barriers.length; j++){
+      if(enemyLasers[i].hits(barriers[j])){
+        enemyLasers[i].remove();
+        barriers[j].hitCount += 0.5;
+        barriers[j].update(barriers[j].hitCount);
+        if (barriers[j].hitCount === 3) {
+          barriers.splice(j, 1);
+        }
+      }
+    }
+    if (enemyLasers[i].offscreen() || enemyLasers[i].toDelete == true) { 
+      enemyLasers.splice(i, 1);
+    }
+  }
+
+  // reset attack flag after a certain time
+  if (attack && millis() - attackStart > attackTime) {
+    // adjust break time as needed
+    attack = false;
+    attackStart = millis();
   }
 
   for (let las = 0; las < lasers.length; las++) {

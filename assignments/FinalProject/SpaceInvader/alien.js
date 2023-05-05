@@ -67,7 +67,7 @@ class Alien {
     }
   }
 
-  
+ 
   // fire() {
   //   // add a new bullet to the bullets array
   //   let laser = new Laser(

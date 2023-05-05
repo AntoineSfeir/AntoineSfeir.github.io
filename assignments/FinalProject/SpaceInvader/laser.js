@@ -3,6 +3,8 @@ class Laser {
         this.x = x;
         this.y = y;
         this.type = type;
+        this.time = 500;
+        this.currentTime = millis();
         this.r = 5; // radius 
         this.d = this.r * 2; // diameter
         this.toDelete = false; // flag 
@@ -41,4 +43,11 @@ class Laser {
     remove() {
         this.toDelete = true;
     }
+    offscreen() {
+        if (this.x > width || this.x < 0) {
+          return true;
+        } else {
+          return false;
+        }
+      }
 }

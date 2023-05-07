@@ -37,4 +37,10 @@ class Barrier {
       this.currentImg = "3";
     }
   }
+  remove(hitCount) {
+    if(hitCount = 3) {
+      return true;
+    }
+    return false;
+  }
 }

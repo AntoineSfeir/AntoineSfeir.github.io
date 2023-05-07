@@ -3,10 +3,8 @@ class Laser {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.time = 500;
-        this.currentTime = millis();
-        this.r = 5; // radius 
-        this.d = this.r * 2; // diameter
+        this.radius = 5; // radius 
+        this.d = this.radius * 2; // diameter
         this.toDelete = false; // flag 
     }
 
@@ -14,7 +12,7 @@ class Laser {
         if (this.type == "enemy") {
             noStroke();
             fill("red");
-            ellipse(this.x, this.y, this.d, this.d);
+            ellipse(this.x, this.y, this.d - 2.5, this.d + 5);
         } else {
             noStroke();
             fill(255, 0, 255); // pink 
@@ -30,10 +28,10 @@ class Laser {
         }
     }
 
-    hits(alien) {
+    hits(target) {
         // distance function measures the distance between two points
-        let dx = dist(this.x, this.y, alien.x, alien.y);
-        if (dx < this.r + alien.radius) {
+        let dx = dist(this.x, this.y, target.x, target.y);
+        if (dx < this.radius + target.radius) {
             return true;
         } else {
             return false;
@@ -45,9 +43,9 @@ class Laser {
     }
     offscreen() {
         if (this.x > width || this.x < 0) {
-          return true;
+            return true;
         } else {
-          return false;
+            return false;
         }
-      }
+    }
 }

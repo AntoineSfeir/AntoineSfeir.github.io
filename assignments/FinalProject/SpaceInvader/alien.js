@@ -66,17 +66,4 @@ class Alien {
       console.log("game over");
     }
   }
-
- 
-  // fire() {
-  //   // add a new bullet to the bullets array
-  //   let laser = new Laser(
-  //     this.x + this.w / 2,
-  //     this.y + this.h,
-  //     "down",
-  //     color(255, 0, 0)
-  //   );
-  //   this.bullets.push(laser);
-  //   console.log("bullets added");
-  // }
 }

@@ -11,18 +11,20 @@ let sensorData;
 
 let ship;
 let aliens = []; // array of aliens
-let bounusAliens = []; // array of bonus aliens
+let bonusAliens = []; // array of bonus aliens
 let lasers = []; // array of lasers
 let barriers = []; // array of barriers
 let explosions = []; // array of explosions
 let enemyLasers = []; // array of enemy lasers
+let rockets = []; // array of rockets
 let points = 0;
 let lives = 3;
-let bonus;
-let bonusActiveCount = 0;
-let lvlCount = 0;
+let bonus, bonus1;
+let bonusActive = 0;
+let lvlCount = 1;
 
-let shootCooldown = 400; // milliseconds
+
+let shootCooldown = 500; // milliseconds
 let canShoot = false;
 let lastFrameTime = 0;
 
@@ -37,6 +39,10 @@ let alien1a,
   alien4a,
   alien4b,
   alien5;
+
+let barrier0, barrier1, barrier2, barrier3;
+let rocketImg;
+
 let soundFX;
 
 var audioContext = null;
@@ -133,12 +139,14 @@ function preload() {
   barrier1 = loadImage("images/barrier1.png");
   barrier2 = loadImage("images/barrier2.png");
   barrier3 = loadImage("images/barrier3.png");
+  rocketImg = loadImage("images/rocket.png");
   explosions[0] = loadImage("images/explosion1.png");
   explosions[1] = loadImage("images/explosion2.png");
 
   soundFX = new Tone.Players({
-    hit: "soundFX/splat.mp3",
-    miss: "soundFX/miss.mp3",
+    playerHit: "soundFX/explosion.wav",
+    enemyHit: "soundFX/invaderkilled.wav",
+    shoot: "soundFX/shoot.wav",
   }).toMaster();
 }
 
@@ -171,6 +179,9 @@ function setup() {
 
 function reset() {
   ship = new Ship();
+  lives = 3;
+  point = 0;
+  lvlCount = 1;
   let barrierX = 90;
   let barrierY = height - 50;
   for (let i = 0; i < 5; i++) {
@@ -184,12 +195,13 @@ function reset() {
     );
     barrierX += 110;
   }
+  level1();
 
   game.elapsedTime = 0;
   game.score = 0;
 
   Tone.Transport.stop("0");
-  startGameMelody.start();
+  //startGameMelody.start();
   Tone.Transport.start("+8n");
 }
 
@@ -231,6 +243,8 @@ function level1() {
       5
     );
   }
+  // bonus = new bonusAlien(width - 25, 30, alien5, explosions, 40);
+  // bonusAliens.push(bonus);
   // create the top row of aliens
   startY = 50;
   let offset = 0;
@@ -290,6 +304,9 @@ function level2() {
     );
     offset++;
   }
+
+  bonus = new bonusAlien(width - 25, 30, alien5, explosions, 40);
+  bonusAliens.push(bonus);
 }
 
 // 210 points
@@ -335,6 +352,11 @@ function level3() {
     );
     offset++;
   }
+
+  bonus = new bonusAlien(width - 25, 30, alien5, explosions, 40);
+  bonusAliens.push(bonus);
+  bonus1 = new bonusAlien(25, 30, alien5, explosions, 40);
+  bonusAliens.push(bonus1);
 }
 
 function incrementLevel(lvlCount) {
@@ -362,10 +384,17 @@ function reload(sprite) {
   enemyLasers.push(laser);
 }
 
+function reloadRockets(sprite) {
+  // add a new bullet to the bullets array
+  let rocket = new Rocket(sprite.x, sprite.y, rocketImg, explosions);
+  console.log("explosions loaded", explosions.length);
+  rockets.push(rocket);
+}
+
 function drawPlayingState() {
-  endGameMelody.stop();
-  startGameMelody.stop();
-  bgMelody.start();
+  // endGameMelody.stop();
+  // startGameMelody.stop();
+  // bgMelody.start();
   drawBackground();
   ship.show();
   let currentTime = millis();
@@ -378,7 +407,7 @@ function drawPlayingState() {
     if (shootCooldown <= 0) {
       // Reset the cooldown timer and allow shooting again
       canShoot = true;
-      shootCooldown = 400;
+      shootCooldown = 500;
     }
   }
   ship.move();
@@ -396,12 +425,37 @@ function drawPlayingState() {
     if (aliens[i].x > width - 20 || aliens[i].x < 20) {
       edge = true;
     }
+    if (aliens[i].y < height - 30) {
+      bonusActive = true;
+    }
   }
 
   // check for collision
   if (edge) {
     for (let j = 0; j < aliens.length; j++) {
       aliens[j].shiftDown();
+    }
+  }
+
+  // Show and move bonus alien
+  let edge1 = false
+  if (bonusActive) {
+    for (let i = 0; i < bonusAliens.length; i++) {
+      bonusAliens[i].show();
+      bonusAliens[i].move();
+      if (frameCount % 50 == 0) {
+        reloadRockets(bonusAliens[i]);
+        console.log("loaded " + bonusAliens[i]);
+      }
+      if (bonusAliens[i].x >= width - bonusAliens[i].radius || bonusAliens[i].x <= bonusAliens[i].radius) {
+        edge1 = true;
+      }
+    }
+  }
+
+  if (edge1) {
+    for (let i = 0; i < bonusAliens.length; i++) {
+      bonusAliens[i].changeDir();
     }
   }
 
@@ -420,23 +474,30 @@ function drawPlayingState() {
     }
   }
 
+  // Enemy Laser loop 
   for (let i = 0; i < enemyLasers.length; i++) {
     enemyLasers[i].show();
     enemyLasers[i].move();
-    for(let j = 0; j < barriers.length; j++){
-      if(enemyLasers[i].hits(barriers[j])){
+    // check for collisions with barriers
+    for (let j = 0; j < barriers.length; j++) {
+      if (enemyLasers[i].hits(barriers[j])) {
         enemyLasers[i].remove();
         barriers[j].hitCount += 0.5;
         barriers[j].update(barriers[j].hitCount);
-        if (barriers[j].hitCount === 3) {
-          barriers.splice(j, 1);
-        }
+        barriers[j].remove(barriers[j].hitCount);
       }
     }
-    if (enemyLasers[i].offscreen() || enemyLasers[i].toDelete == true) { 
+    // check for collisions with player
+    if (enemyLasers[i].hits(ship)) {
+      ship.isHit();
+      soundFX.player("playerHit").start();
+      enemyLasers[i].remove();
+      lives--;
+    }
+    if (enemyLasers[i].offscreen() || enemyLasers[i].toDelete == true) {
       enemyLasers.splice(i, 1);
     }
-  }
+  } // end Enemy Laser loop
 
   // reset attack flag after a certain time
   if (attack && millis() - attackStart > attackTime) {
@@ -445,6 +506,38 @@ function drawPlayingState() {
     attackStart = millis();
   }
 
+  // Rocket loop1
+  for (let i = 0; i < rockets.length; i++) {
+    rockets[i].show();
+    rockets[i].move(ship);
+    // check for collisions for rocket with player
+    if (rockets[i].hits(ship)) {
+      rockets[i].remove();
+      rockets[i].explode();
+      rockets[i].update();
+    }
+    // check for collisions for rocket with barriers
+    for (let j = 0; j < barriers.length; j++) {
+      if (rockets[i].hits(barriers[j])) {
+        rockets[i].remove();
+        rockets[i].explode();
+        rockets[i].update(2);
+        barriers[j].hitCount++;
+        barriers[j].update(barriers[j].hitCount);
+        barriers[j].remove(barriers[j].hitCount);
+      }
+    }
+  } // end of rocket loop1
+
+  for (let i = 0; i < rockets.length; i++) {
+    if (rockets[i].toDelete || rockets[i].offscreen()) {
+      rockets.splice(i, 1);
+    }
+  }
+
+
+
+  // laser loop
   for (let las = 0; las < lasers.length; las++) {
     lasers[las].show();
     lasers[las].move();
@@ -460,11 +553,13 @@ function drawPlayingState() {
       }
     } // end of alien loop
     // check for collision with bonus alien
-    for (let b = 0; b < bounusAliens.length; b++) {
-      if (lasers[las].hits(bounusAliens[b])) {
+    for (let b = 0; b < bonusAliens.length; b++) {
+      if (lasers[las].hits(bonusAliens[b])) {
         lasers[las].remove();
-        points = points + bounusAliens[b].pts;
-        bounusAliens.splice(b, 1); // removes alien from array
+        bonusAliens[b].explode();
+        bonusAliens[b].update();
+        points = points + bonusAliens[b].pts;
+        bonusAliens.splice(b, 1); // removes alien from array
       }
     } // end of bonus alien loop
     // Does not currently work
@@ -474,9 +569,7 @@ function drawPlayingState() {
         lasers[las].remove();
         barriers[bar].hitCount++;
         barriers[bar].update(barriers[bar].hitCount);
-        if (barriers[bar].hitCount === 3) {
-          barriers.splice(bar, 1);
-        }
+        barriers[bar].remove(barriers[bar].hitCount);
       }
     } // end of barrier loop
   } // end of laser loop #1
@@ -487,6 +580,13 @@ function drawPlayingState() {
       lasers.splice(i, 1);
     }
   } // end of laser loop #2
+
+  // barrier loop
+  for (let i = 0; i < barriers.length; i++) {
+    if(barriers[i].toDelete) {
+      barriers.splice(bar, 1);
+    }
+  }
 
   // add HUD
   updateHUD();
@@ -500,9 +600,9 @@ function drawPlayingState() {
 }
 
 function drawGameOverState() {
-  bgMelody.stop();
-  speedUp.stop();
-  endGameMelody.start();
+  // bgMelody.stop();
+  // speedUp.stop();
+  //endGameMelody.start();
   background(0);
   fill(255);
   textSize(40);
@@ -511,9 +611,9 @@ function drawGameOverState() {
 }
 
 function drawStartState() {
-  bgMelody.stop();
-  speedUp.stop();
-  startGameMelody.start();
+  // bgMelody.stop();
+  // speedUp.stop();
+  // startGameMelody.start();
   background(0);
   fill(255);
   textSize(50);
@@ -567,6 +667,7 @@ function keyPressed() {
     let laser = new Laser(ship.x + 30, ship.y - 20, "player");
     lasers.push(laser);
     canShoot = false;
+    soundFX.player("shoot").start();
   }
   if (keyCode === RIGHT_ARROW) {
     ship.setDir(1);

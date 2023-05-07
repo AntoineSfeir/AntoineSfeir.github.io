@@ -3,15 +3,25 @@ class Ship {
         this.x = width / 2;
         this.y = height - 10;
         this.width = 60;
-        this.height = 10;
+        this.radius = 30;
+        this.height = 15;
         this.xdir = 0;
+        this.hit = false;
     }
 
     show() {
-        fill('green');
-        noStroke();
-        rect(this.x, this.y, this.width, this.height);
-        rect(this.x + 20, this.y - 10, 20, 10);
+        if(this.hit) {
+            fill('red');
+            noStroke();
+            rect(this.x, this.y, this.width, this.height);
+            rect(this.x + 20, this.y - 10, 20, 10);
+            this.hit = false;
+        } else {
+            fill('green');
+            noStroke();
+            rect(this.x, this.y, this.width, this.height);
+            rect(this.x + 20, this.y - 10, 20, 10);    
+        }
     }
 
     move() {
@@ -25,5 +35,9 @@ class Ship {
 
     setDir(dir) {
         this.xdir = dir;
+    }
+
+    isHit() {
+        this.hit = true;
     }
 }

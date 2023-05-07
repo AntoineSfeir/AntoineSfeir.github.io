@@ -133,7 +133,7 @@ function setup() {
 }
 
 function reset() {
-  reticle
+  reticle();
   game.elapsedTime = 0;
   game.score = 0;
   game.totalSprites = random(30, 40);

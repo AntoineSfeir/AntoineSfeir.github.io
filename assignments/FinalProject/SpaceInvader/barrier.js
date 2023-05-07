@@ -12,6 +12,7 @@ class Barrier {
     this.img3 = img3;
     this.currentImg = "0";
     this.hitCount = 0;
+    this.toDelete = false;
   }
 
   show() {
@@ -37,10 +38,7 @@ class Barrier {
       this.currentImg = "3";
     }
   }
-  remove(hitCount) {
-    if(hitCount = 3) {
-      return true;
-    }
-    return false;
+  remove() {
+    this.toDelete = true;
   }
 }

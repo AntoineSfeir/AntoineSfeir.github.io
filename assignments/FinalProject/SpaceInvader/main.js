@@ -432,7 +432,7 @@ function drawPlayingState() {
 
   // check for collision
   if (edge) {
-    for (let j = 0; j < aliens.length; j++) {
+    for(let j = 0; j < aliens.length; j++) {
       aliens[j].shiftDown();
     }
   }
@@ -484,7 +484,9 @@ function drawPlayingState() {
         enemyLasers[i].remove();
         barriers[j].hitCount += 0.5;
         barriers[j].update(barriers[j].hitCount);
-        barriers[j].remove(barriers[j].hitCount);
+        if(barriers[j].hitCount == 3) {
+          barriers[j].remove();
+        }
       }
     }
     // check for collisions with player
@@ -524,7 +526,10 @@ function drawPlayingState() {
         rockets[i].update(2);
         barriers[j].hitCount++;
         barriers[j].update(barriers[j].hitCount);
-        barriers[j].remove(barriers[j].hitCount);
+        if(barriers[j].hitCount == 3) {
+          barriers[j].remove();
+        }
+        barriers[j].remove();
       }
     }
   } // end of rocket loop1
@@ -545,6 +550,7 @@ function drawPlayingState() {
     for (let ali = 0; ali < aliens.length; ali++) {
       if (lasers[las].hits(aliens[ali])) {
         lasers[las].remove();
+        soundFX.player("enemyHit").start();
         points = points + aliens[ali].pts;
         aliens[ali].explode();
         aliens[ali].update();
@@ -569,7 +575,9 @@ function drawPlayingState() {
         lasers[las].remove();
         barriers[bar].hitCount++;
         barriers[bar].update(barriers[bar].hitCount);
-        barriers[bar].remove(barriers[bar].hitCount);
+        if(barriers[bar].hitCount == 3) {
+          barriers[bar].remove();
+        }
       }
     } // end of barrier loop
   } // end of laser loop #1
@@ -582,9 +590,9 @@ function drawPlayingState() {
   } // end of laser loop #2
 
   // barrier loop
-  for (let i = 0; i < barriers.length; i++) {
+  for (let i = barriers.length - 1; i >= 0; i--) {
     if(barriers[i].toDelete) {
-      barriers.splice(bar, 1);
+      barriers.splice(i, 1);
     }
   }
 

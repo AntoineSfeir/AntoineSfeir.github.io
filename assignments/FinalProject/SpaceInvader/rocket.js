@@ -23,7 +23,7 @@ class Rocket {
 
     move(target) {
         let dx = dist(this.x, this.y, target.x, target.y);
-        if (dx - 60 < this.radius + target.radius) {
+        if (dx - 60 < this.radius + target.radius || this.y > height - 100) {
             this.y += 20;
         } else {
             let dir = createVector(target.x - this.x, target.y - this.y);

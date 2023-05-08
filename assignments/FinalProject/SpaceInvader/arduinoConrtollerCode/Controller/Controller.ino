@@ -15,8 +15,8 @@ int yTotal = 0;
 int yAverage = 0;
 
 //Joystick
-const int SW_pin = 2; 
-const int X_pin = A0; 
+const int SW_pin = 2;
+const int X_pin = A0;
 const int Y_pin = A1;
 
 //RGB
@@ -63,7 +63,7 @@ void setup() {
   for (int thisXReading = 0; thisXReading < numReadings; thisXReading++) {
     xReadings[thisXReading] = 0;
   }
-  
+
   //initialize all the Y readings to 0:
   for (int thisYReading = 0; thisYReading < numReadings; thisYReading++) {
     yReadings[thisYReading] = 0;
@@ -75,8 +75,8 @@ void loop() {
   unsigned long currentMillis = millis();
 
   //Read joystick potentiometer pins
-//  XValue = analogRead(X_pin);
-//  YValue = analogRead(Y_pin);
+  //  XValue = analogRead(X_pin);
+  //  YValue = analogRead(Y_pin);
 
   //map pot pins from 0 to 255
   XOut = map(xAverage, 0, 1023, 0, 255);
@@ -127,36 +127,42 @@ void loop() {
 
     //Output JSON values
     Serial.println(serialOutput);
-  } 
-  
-  //check for incoming Serial values
+  }
+
   while (Serial.available() > 0) {
-
-    // look for the next valid integer in the incoming serial stream:
-    int red = Serial.parseInt();
-    // do it again:
-    int green = Serial.parseInt();
-    // do it again:
-    int blue = Serial.parseInt();
-    // do it again:
-    int joySwitch = Serial.parseInt();
-
-    // look for the newline. That's the end of your sentence:
-    if (Serial.read() == '\n') {
-      // constrain the values to 0 - 255 and invert
-      // if you're using a common-cathode LED, just use "constrain(color, 0, 255);"
-      red = constrain(red, 0, 255);
-      green = constrain(green, 0, 255);
-      blue = constrain(blue, 0, 255);
-      ledState = joySwitch;
-
-      // fade the red, green, and blue legs of the LED:
-      analogWrite(redPin, red);
-      analogWrite(greenPin, green);
-      analogWrite(bluePin, blue);
-
-      //Write to Joystick switch led pin
-      digitalWrite(ledPin, ledState);
+    // Read the incoming serial data into a string
+    String inputString = Serial.readStringUntil('\n');
+    // Split the string into separate values using the comma delimiter
+    String values[3];
+    int i = 0;
+    int commaIndex = 0;
+    while (i < 2) {
+      commaIndex = inputString.indexOf(',');
+      if (commaIndex == -1) {
+        break;
+      }
+      values[i] = inputString.substring(0, commaIndex);
+      inputString = inputString.substring(commaIndex + 1);
+      i++;
     }
+    if (commaIndex != -1) {
+      values[i] = inputString;
+    }
+
+    // Extract the color values from the values array
+    int red = values[0].toInt();
+    int green = values[1].toInt();
+    int blue = values[2].toInt();
+
+    // Constrain the color values to the range 0-255
+    red = constrain(red, 0, 255);
+    green = constrain(green, 0, 255);
+    blue = constrain(blue, 0, 255);
+
+    // Set the LED color based on the received color values
+    analogWrite(redPin, red);
+    analogWrite(greenPin, green);
+    analogWrite(bluePin, blue);
   }
 }
+

@@ -255,6 +255,8 @@ function level1() {
     );
     offset++;
   }
+  bonus = new bonusAlien(width - 25, 30, alien5, explosions, 40);
+  bonusAliens.push(bonus)
 }
 
 // 180 points
@@ -504,6 +506,7 @@ function drawPlayingState() {
     // check for collisions with player
     if (enemyLasers[i].hits(ship)) {
       ship.isHit();
+      controllerLight(255, 0, 0); // set red to maximum, green and blue to zero
       soundFX.player("playerHit").start();
       enemyLasers[i].remove();
       lives--;
@@ -526,6 +529,8 @@ function drawPlayingState() {
     rockets[i].move(ship);
     // check for collisions for rocket with player
     if (rockets[i].hits(ship)) {
+      controllerLight(255, 0, 0); // set red to maximum, green and blue to zero
+      ship.isHit();
       rockets[i].remove();
       rockets[i].explode();
       rockets[i].update();
@@ -559,6 +564,7 @@ function drawPlayingState() {
     // check for collision
     for (let ali = 0; ali < aliens.length; ali++) {
       if (lasers[las].hits(aliens[ali])) {
+        controllerLight(0, 255, 0); // set green to maximum, red and blue to zero
         lasers[las].remove();
         soundFX.player("enemyHit").start();
         points = points + aliens[ali].pts;
@@ -571,6 +577,7 @@ function drawPlayingState() {
     // check for collision with bonus alien
     for (let b = 0; b < bonusAliens.length; b++) {
       if (lasers[las].hits(bonusAliens[b])) {
+        controllerLight(0, 0, 255); // set blue to maximum, red and green to zero
         lasers[las].remove();
         bonusAliens[b].explode();
         bonusAliens[b].update();
@@ -749,6 +756,25 @@ async function disconnect() {
     console.log("Serial port closed successfully");
   } else {
     console.log("Port is not open");
+  }
+}
+
+function controllerLight(red, green, blue) {
+  // Check if writer is available
+  if (writer) {
+    if(red == 255) {
+      console.log("red");
+    }
+    if(green == 255) {
+      console.log("green");
+    }
+    if(blue == 255) {
+      console.log("blue");
+    }
+     // Write the new brightness values to the stream
+    let writeString = red + ", " + green + ", " + blue + "\n";
+
+    writer.write(encoder.encode(writeString));
   }
 }
 

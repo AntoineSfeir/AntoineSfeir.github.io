@@ -323,8 +323,6 @@ function level1() {
       10
     );
   }
-  bonus = new bonusAlien(width / 2, 300, alien5, explosions, 50);
-  bonusAliens.push(bonus);
 }
 // 180 points
 function level2() {
@@ -884,8 +882,13 @@ function drawPlayingState() {
       bonusAliens[i].move();
       if (frameCount % 50 == 0) {
         reloadRockets(bonusAliens[i]);
-        loadPowerUp(bonusAliens[i], "shield");
         console.log("shield", shieldPowerUps.length);
+      }
+      if(frameCount % 300 == 0){
+        loadPowerUp(bonusAliens[i], "shield");
+      }
+      if(frameCount % 500 == 0){
+        loadPowerUp(bonusAliens[i], "xtraLife");
       }
       if (
         bonusAliens[i].x >= width - 130 - bonusAliens[i].radius ||
@@ -893,6 +896,26 @@ function drawPlayingState() {
       ) {
         edge1 = true;
       }
+    }
+  }
+
+  // Sheild power up loop
+  for (let i = 0; i < shieldPowerUps; i++) {
+    shieldPowerUps[i].show();
+    shieldPowerUps[i].move();
+    if(shieldPowerUps[i].hits(ship)){
+      ship.addSheild();
+      shieldPowerUps[i].remove();
+    }
+  }
+
+  // Life power up loop
+  for (let i = 0; i < xtraLives; i++) {
+    xtraLives[i].show();
+    xtraLives[i].move();
+    if(xtraLives[i].hits(ship)){
+      xtraLives[i].remove();
+      lives++;
     }
   }
 
@@ -986,17 +1009,6 @@ function drawPlayingState() {
     if (rockets[i].toDelete || rockets[i].offscreen()) {
       rockets.splice(i, 1);
     }
-  }
-  // Sheild power up loop
-  for (let i = 0; i < shieldPowerUps; i++) {
-    shieldPowerUps[i].show();
-    shieldPowerUps[i].move();
-  }
-
-  // Life power up loop
-  for (let i = 0; i < xtraLives; i++) {
-    xtraLives[i].show();
-    xtraLives[i].move();
   }
 
   // laser loop

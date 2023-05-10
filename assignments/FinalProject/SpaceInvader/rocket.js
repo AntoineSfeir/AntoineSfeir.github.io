@@ -23,7 +23,7 @@ class Rocket {
 
     move(target) {
         let dx = dist(this.x, this.y, target.x, target.y);
-        if (dx - 60 < this.radius + target.radius || this.y > height - 100) {
+        if (dx - 70 < this.radius + target.radius || this.y > height - 200) {
             this.y += 20;
         } else {
             let dir = createVector(target.x - this.x, target.y - this.y);
@@ -74,7 +74,7 @@ class Rocket {
     }
 
     offscreen() {
-        if (this.x > width || this.x < 0) {
+        if (this.y > height - 150 || this.x > width - 150 || this.x < 150) {
             return true;
         } else {
             return false;

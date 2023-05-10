@@ -42,7 +42,7 @@ class Laser {
         this.toDelete = true;
     }
     offscreen() {
-        if (this.x > width || this.x < 0) {
+        if (this.y > height - 150 || this.y < 275) {
             return true;
         } else {
             return false;

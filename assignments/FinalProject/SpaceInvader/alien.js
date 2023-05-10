@@ -60,7 +60,7 @@ class Alien {
 
   shiftDown() {
     this.xdir *= -1;
-    this.y += 20;
+   // this.y += 20;
     if (this.y > height - 100) {
       // game over
       console.log("game over");

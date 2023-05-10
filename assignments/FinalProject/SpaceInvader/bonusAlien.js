@@ -15,6 +15,7 @@ class bonusAlien {
         this.toDelete = false;
         this.bullets = [];
         this.frameIndex = 0;
+        this.dropSheild = false;
     }
 
     show() {
